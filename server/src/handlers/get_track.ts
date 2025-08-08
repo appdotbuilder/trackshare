@@ -1,18 +1,28 @@
+import { db } from '../db';
+import { tracksTable } from '../db/schema';
 import { type GetTrackInput, type Track } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const getTrack = async (input: GetTrackInput): Promise<Track | null> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching a single GPS track by ID from the database.
-    // This will be used to display track details and GPS data for map visualization.
-    return Promise.resolve({
-        id: input.id,
-        title: 'Placeholder Track',
-        description: 'This is a placeholder track',
-        file_name: 'sample.gpx',
-        file_type: 'gpx' as const,
-        file_size: 1024,
-        track_data: '<gpx>...</gpx>', // Placeholder GPX data
-        created_at: new Date(),
-        updated_at: new Date()
-    } as Track);
+  try {
+    // Query the database for the track by ID
+    const results = await db.select()
+      .from(tracksTable)
+      .where(eq(tracksTable.id, input.id))
+      .execute();
+
+    // Return null if track not found
+    if (results.length === 0) {
+      return null;
+    }
+
+    // Return the track data
+    const track = results[0];
+    return {
+      ...track
+    };
+  } catch (error) {
+    console.error('Track retrieval failed:', error);
+    throw error;
+  }
 };
